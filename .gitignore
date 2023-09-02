@@ -1,3 +1,6 @@
+# Any tmp file
+*~
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -124,6 +127,7 @@ celerybeat.pid
 .venv
 env/
 venv/
+*.venv/
 ENV/
 env.bak/
 venv.bak/
