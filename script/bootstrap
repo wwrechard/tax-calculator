@@ -1,5 +1,11 @@
 VENV="$(basename $PWD).venv"
 
+if [ "$VENV" != "tax-calculator.venv" ]; then
+  echo "Error creating the virtual env..."
+  echo "Please run bootstrap script in the root directory."
+  return 1
+fi
+
 echo "==> Preparing dependencies..."
 
 PY_VERSION=$PYENV_VERSION
@@ -14,3 +20,4 @@ source $VENV/bin/activate
 
 eval "$(pyenv init --path)"
 pip install -r requirements.txt
+export PYTHONPATH="$PWD:$PYTHONPATH"
