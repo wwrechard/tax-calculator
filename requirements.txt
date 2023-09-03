@@ -116,5 +116,7 @@ urllib3==2.0.4
     # via requests
 validators==0.22.0
     # via streamlit
+watchdog==3.0.0
+    # via -r requirements.in
 zipp==3.16.2
     # via importlib-metadata
