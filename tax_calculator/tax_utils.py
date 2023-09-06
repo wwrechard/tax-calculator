@@ -1,53 +1,11 @@
-cap_401k_table = {
-    2023: 22500,
-}
-
-deduction_table = {
-    ('federal', 'single', 2023): 13850,
-    ('federal', 'married', 2023): 27700,
-    ('CA', 'single', 2023): 5202,
-    ('CA', 'married', 2023): 10404,
-}
-
-tax_bracket_table = {
-    ('federal', 'single', 2023): (
-        [0, 11000, 44725, 95375, 182100, 231250, 578125],
-        [0.1, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]),
-    ('federal', 'married', 2023): (
-        [0, 22000, 89450, 190750, 364200, 462500, 693750],
-        [0.1, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37]),
-    ('CA', 'single', 2023): (
-        [0, 10099, 23942, 37788, 52455, 66295, 338639, 406364, 677275],
-        [0.01, 0.02, 0.04, 0.06, 0.08, 0.093, 0.103, 0.113, 0.123]),
-    ('CA', 'married', 2023): (
-        [0, 20198, 47884, 75576, 104910, 132590, 677278, 812728, 1354550],
-        [0.01, 0.02, 0.04, 0.06, 0.08, 0.093, 0.103, 0.113, 0.123]),
-}
-
-long_term_capital_gain_tax_rate_table = {
-    ('single', 2023): ([0, 44625, 492300], [0.0, 0.15, 0.2]),
-    ('married', 2023): ([0, 89250, 553850], [0.0, 0.15, 0.2]),
-}
-
-state_deduction_adjustment_table = {
-    ('CA', 'single', 2023): 229908,
-    ('CA', 'married', 2023): 459821,
-}
-
-fica_table = {
-    2023: [160200, 0.062]
-}
-
-state_sdi_table = {
-    ('CA', 2023): [153164, 0.009]
-}
+import tax_calculator.tables as t
 
 def cap_401k(year):
-    return cap_401k_table[year]
+    return t.cap_401k_table[year]
 
 def standard_deduction(type, martial, year):
     key = (type, martial, year)
-    return deduction_table[key]
+    return t.deduction_table[key]
 
 def qualified_mortgage(interest, principal):
     if principal <= 750000:
@@ -57,7 +15,7 @@ def qualified_mortgage(interest, principal):
 
 def tax_bracket(type, martial, year):
     key = (type, martial, year)
-    return tax_bracket_table[key]
+    return t.tax_bracket_table[key]
 
 def calculate_tax(income, brackets, rates):
     result = income * rates[0]
@@ -72,7 +30,7 @@ def calculate_tax(income, brackets, rates):
         
 def long_term_capital_gain_tax_rate(taxable_income, martial, year):
     key = (martial, year)
-    bracket, rate = long_term_capital_gain_tax_rate_table[key]
+    bracket, rate = t.long_term_capital_gain_tax_rate_table[key]
     for i in range(len(bracket)):
         idx = len(bracket) - i - 1
         if taxable_income > bracket[i]:
@@ -85,40 +43,8 @@ def get_additional_medicare_tax_threshold(martial):
     elif martial == 'married':
         return 250000
 
-def tax_output(total_income, federal_taxable_income, state_taxable_income, federal_tax, state_tax, fica_tax, medicare_tax, sdi_tax, child_credit):
-    total_tax = federal_tax + fica_tax + medicare_tax + state_tax + sdi_tax
-    take_home = total_income - total_tax
-
-    intf = lambda x: format(x, '.2f')
-    ratio = lambda x, y: 0 if y == 0 else format(float(x / y * 100), '.2f')
-
-    federal_tax_rate = ratio(federal_tax, federal_taxable_income)
-    fica_rate = ratio(fica_tax, federal_taxable_income)
-    medicare_rate = ratio(medicare_tax, federal_taxable_income)
-    state_tax_rate = ratio(state_tax, state_taxable_income)
-    sdi_rate = ratio(sdi_tax, state_taxable_income)
-    total_tax_rate = ratio(total_tax, total_income)
-    take_home_rate = ratio(take_home, total_income)
-
-    return f'''
-    |                                 |                         |                           |
-    |---------------------------------|-------------------------|---------------------------|
-    |Total income                     | ${intf(total_income)}   |                           |
-    |Federal taxable income           | ${intf(federal_taxable_income)} |                   |
-    |State taxable income             | ${intf(state_taxable_income)}|                      |
-    |Federal tax                      | ${intf(federal_tax)}    | {federal_tax_rate}%  |
-    |State tax                        | ${intf(state_tax)}      | {state_tax_rate}%    |
-    |social security tax              | ${intf(fica_tax)}       | {fica_rate}%         |
-    |Medicare                         | ${intf(medicare_tax)}   | {medicare_rate}%     |
-    |SUI/SDI                          | ${intf(sdi_tax)}        | {sdi_rate}%          |
-    |Child care credit                | ${intf(child_credit)}   |                      |
-    | __Total tax w/o AMT__           | ${intf(total_tax)}      | {total_tax_rate}% |
-    | __Take home__                   | ${intf(take_home)}      | {take_home_rate}% |
-    '''
-
-
 class Tax:
-    def __init__(self, session):
+    def __init__(self, session, projected_state_withhold):
         self._year = session['year']
         self._martial = session['martial']
         self._state = session['state']
@@ -137,11 +63,10 @@ class Tax:
         self._mortgage_interest = session['mortgage_interest']
         self._mortgage_amount = session['mortgage_amount']
         self._donations = session['donations']
-        self._state_withold = session['state_withold']
         self._property_tax = session['property_tax']
         self._child_dependents = session['child_dependents']
 
-        self._salt = min(self._state_withold + self._property_tax, 10000)
+        self._salt = min(projected_state_withhold + self._property_tax, 10000)
 
 
     def capital_gain(self):
@@ -183,7 +108,7 @@ class Tax:
 
     def get_fica_tax(self):
         key = self._year
-        cap, rate = fica_table[key]
+        cap, rate = t.fica_table[key]
         return rate * (min(self.get_wages(), cap) + min(self.get_spouse_wages(), cap))
 
     def get_medicare_tax(self):
@@ -195,7 +120,8 @@ class Tax:
         standard = standard_deduction(self._state, self._martial, self._year)
         
         itemized_deduction = self._property_tax + self._mortgage_interest + self._donations
-        threshold = state_deduction_adjustment_table[(self._state, self._martial, self._year)]
+        threshold = t.state_deduction_adjustment_table[(
+            self._state, self._martial, self._year)]
         federal_agi = self.get_total_income()
         if federal_agi > threshold:
             line4 = itemized_deduction * 0.8
@@ -215,6 +141,76 @@ class Tax:
         
     def get_state_sdi_tax(self):
         key = (self._state, self._year)
-        cap, rate = state_sdi_table[key]
+        cap, rate = t.state_sdi_table[key]
         return rate * (min(self.get_wages(), cap) + min(self.get_spouse_wages(), cap))
         
+
+class Withhold:
+    def __init__(self, session):
+        self._martial = session['martial']
+        self._state = session['state']
+        self._year = session['year']
+
+        self._federal_withhold = session['federal_withhold']
+        self._state_withhold = session['state_withhold']
+        self._federal_rsu_rate = session['federal_rsu_rate']
+        self._federal_bonus_rate = session['federal_bonus_rate']
+        self._state_rsu_rate = t.state_rsu_withhold_table[(self._state, self._year)]
+        self._state_bonus_rate = t.state_bonus_withhold_table[(self._state, self._year)]
+        self._num_pay = session['num_pay']
+        self._federal_per_pay = session['federal_per_pay']
+        self._state_per_pay = session['state_per_pay']
+        self._remain_bonus = session['remain_bonus']
+        self._rsu = session['rsu']
+        
+        self._sp_federal_withhold = session['sp_federal_withhold']
+        self._sp_state_withhold = session['sp_state_withhold']
+        self._sp_federal_rsu_rate = session['sp_federal_rsu_rate']
+        self._sp_federal_bonus_rate = session['sp_federal_bonus_rate']
+        self._sp_state_rsu_rate = t.state_rsu_withhold_table[(self._state, self._year)]
+        self._sp_state_bonus_rate = t.state_bonus_withhold_table[(self._state, self._year)]
+        self._sp_num_pay = session['sp_num_pay']
+        self._sp_federal_per_pay = session['sp_federal_per_pay']
+        self._sp_state_per_pay = session['sp_state_per_pay']
+        self._sp_remain_bonus = session['sp_remain_bonus']
+        self._sp_rsu = session['sp_rsu']
+
+    def get_current_federal_withhold(self):
+        return self._federal_withhold + self._sp_federal_withhold
+
+    def get_current_state_withhold(self):
+        return self._state_withhold + self._sp_state_withhold
+
+    def get_projected_federal_pay_withhold(self):
+        projected_withhold = (self._num_pay * self._federal_per_pay +
+                              self._sp_num_pay * self._sp_federal_per_pay +
+                              self._remain_bonus * self._federal_bonus_rate +
+                              self._sp_remain_bonus * self._sp_federal_bonus_rate)
+        return projected_withhold
+
+    def get_projected_federal_rsu_withhold(self):
+        projected_withhold = (self._rsu * self._federal_rsu_rate +
+                              self._sp_rsu * self._sp_federal_rsu_rate)
+        return projected_withhold
+
+    def get_projected_federal_withhold(self):
+        return (self.get_current_federal_withhold() +
+                self.get_projected_federal_pay_withhold() +
+                self.get_projected_federal_rsu_withhold())
+        
+    def get_projected_state_pay_withhold(self):
+        projected_withhold = (self._num_pay * self._state_per_pay +
+                              self._sp_num_pay * self._sp_state_per_pay +
+                              self._remain_bonus * self._state_bonus_rate +
+                              self._sp_remain_bonus * self._sp_state_bonus_rate)
+        return projected_withhold
+
+    def get_projected_state_rsu_withhold(self):
+        projected_withhold = (self._rsu * self._state_rsu_rate +
+                              self._sp_rsu * self._sp_state_rsu_rate)
+        return projected_withhold
+
+    def get_projected_state_withhold(self):
+        return (self.get_current_state_withhold() +
+                self.get_projected_state_pay_withhold() +
+                self.get_projected_state_rsu_withhold())
