@@ -7,7 +7,7 @@ import numpy as np
 
 
 st.title('Tax calculator')
-st.selectbox('Martial status:', ['single', 'married'], key='martial')
+st.selectbox('Marital status:', ['single', 'married'], key='marital')
 st.selectbox('Resident state:', ['CA'], key='state')
 year = st.selectbox('Tax year:', [2023], key='year')
 
@@ -44,7 +44,7 @@ with ll:
     st.number_input('Current state tax withhold:', key='state_withhold')
     st.number_input('RSU federal withhold rate:', key='federal_rsu_rate', value=0.22)
     st.number_input('Bonus federal withhold rate:', key='federal_bonus_rate', value=0.22)
-    st.number_input('Number of remaining paychecks:', key='num_pay')
+    st.number_input('Number of remaining paychecks:', key='num_pay', step=1)
     st.number_input('Federal withhold per paycheck:', key='federal_per_pay')
     st.number_input('State withhold per paycheck:', key='state_per_pay')
     st.number_input('Remaining bonus:', key='remain_bonus')
@@ -57,7 +57,7 @@ with rr:
                     key='sp_federal_rsu_rate', value=0.22)
     st.number_input('Spouse federal bonus withhold rate:',
                     key='sp_federal_bonus_rate', value=0.22)
-    st.number_input('Spouse number of remaining paychecks:', key='sp_num_pay')
+    st.number_input('Spouse number of remaining paychecks:', key='sp_num_pay', step=1)
     st.number_input('Spouse federal withhold per paycheck:', key='sp_federal_per_pay')
     st.number_input('Spouse state withhold per paycheck:', key='sp_state_per_pay')
     st.number_input('Spouse remaining bonus:', key='sp_remain_bonus')

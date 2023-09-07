@@ -4,8 +4,8 @@ import tax_calculator.tables as t
 def cap_401k(year):
     return t.cap_401k_table[year]
 
-def standard_deduction(type, martial, year):
-    key = (type, martial, year)
+def standard_deduction(type, marital, year):
+    key = (type, marital, year)
     return t.deduction_table[key]
 
 def qualified_mortgage(interest, principal):
@@ -14,8 +14,8 @@ def qualified_mortgage(interest, principal):
     else:
         return interest * 750000 / principal
 
-def tax_bracket(type, martial, year):
-    key = (type, martial, year)
+def tax_bracket(type, marital, year):
+    key = (type, marital, year)
     return t.tax_bracket_table[key]
 
 def calculate_tax(income, brackets, rates):
@@ -29,8 +29,8 @@ def calculate_tax(income, brackets, rates):
         result += abs(income - bracket) * (rates[i] - rates[i - 1])
     return result
         
-def long_term_capital_gain_tax_rate(taxable_income, martial, year):
-    key = (martial, year)
+def long_term_capital_gain_tax_rate(taxable_income, marital, year):
+    key = (marital, year)
     bracket, rate = t.long_term_capital_gain_tax_rate_table[key]
     for i in range(len(bracket)):
         idx = len(bracket) - i - 1
@@ -38,10 +38,10 @@ def long_term_capital_gain_tax_rate(taxable_income, martial, year):
             return rate[i]
     return 0.0
 
-def get_additional_medicare_tax_threshold(martial):
-    if martial == 'single':
+def get_additional_medicare_tax_threshold(marital):
+    if marital == 'single':
         return 200000
-    elif martial == 'married':
+    elif marital == 'married':
         return 250000
 
 def rount_up_to(num, unit):
@@ -50,7 +50,7 @@ def rount_up_to(num, unit):
 class Tax:
     def __init__(self, session, projected_state_withhold):
         self._year = session['year']
-        self._martial = session['martial']
+        self._marital = session['marital']
         self._state = session['state']
     
         self._income = session['income']
@@ -91,12 +91,12 @@ class Tax:
 
     def get_child_tax_credit(self):
         credit = self._child_below_17 * 2000 + self._child_above_17 * 500
-        threshold = 400000 if self._martial == 'married' else 200000
+        threshold = 400000 if self._marital == 'married' else 200000
         credit -= rount_up_to(max(0, self.get_total_income() - threshold), 1000) * 0.05
         return max(0, credit)
 
     def get_federal_deduction(self):
-        standard = standard_deduction('federal', self._martial, self._year)
+        standard = standard_deduction('federal', self._marital, self._year)
         mortgage = qualified_mortgage(self._mortgage_interest, self._mortgage_amount)
         itemized_deduction = self._salt + mortgage + self._donations
 
@@ -106,13 +106,13 @@ class Tax:
         return max(0, self.get_total_income() - self.get_federal_deduction())
 
     def get_federal_income_tax(self):
-        brackets, rates = tax_bracket('federal', self._martial, self._year)
+        brackets, rates = tax_bracket('federal', self._marital, self._year)
         taxable_income = self.get_federal_taxable_income()
         if self.capital_gain() <= 0 or self._long_gain <= 0:
             result = calculate_tax(taxable_income, brackets, rates)
         else:
             result = calculate_tax(taxable_income - self._long_gain, brackets, rates)
-            long_tax_rate = long_term_capital_gain_tax_rate(taxable_income, self._martial, self._year)
+            long_tax_rate = long_term_capital_gain_tax_rate(taxable_income, self._marital, self._year)
             result += self._long_gain * long_tax_rate
         result -= self.get_child_tax_credit()
         return result
@@ -123,16 +123,16 @@ class Tax:
         return rate * (min(self.get_wages(), cap) + min(self.get_spouse_wages(), cap))
 
     def get_medicare_tax(self):
-        threshold = get_additional_medicare_tax_threshold(self._martial)
+        threshold = get_additional_medicare_tax_threshold(self._marital)
         total_wages = self.get_wages() + self.get_spouse_wages()
         return 0.0145 * total_wages + 0.009 * max(0, total_wages - threshold)
 
     def get_state_deduction(self):
-        standard = standard_deduction(self._state, self._martial, self._year)
+        standard = standard_deduction(self._state, self._marital, self._year)
         
         itemized_deduction = self._property_tax + self._mortgage_interest + self._donations
         threshold = t.state_deduction_adjustment_table[(
-            self._state, self._martial, self._year)]
+            self._state, self._marital, self._year)]
         federal_agi = self.get_total_income()
         if federal_agi > threshold:
             line4 = itemized_deduction * 0.8
@@ -145,7 +145,7 @@ class Tax:
         return max(0, self.get_total_income() - self.get_state_deduction())
 
     def get_state_income_tax(self):
-        brackets, rates = tax_bracket(self._state, self._martial, self._year)
+        brackets, rates = tax_bracket(self._state, self._marital, self._year)
         taxable_income = self.get_state_taxable_income()
         result = calculate_tax(taxable_income, brackets, rates)
         return result
@@ -158,7 +158,7 @@ class Tax:
 
 class Withhold:
     def __init__(self, session):
-        self._martial = session['martial']
+        self._marital = session['marital']
         self._state = session['state']
         self._year = session['year']
 
