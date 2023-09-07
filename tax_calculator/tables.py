@@ -49,3 +49,8 @@ state_rsu_withhold_table = {
 state_bonus_withhold_table = {
     ('CA', 2023): 0.1023
 }
+
+mortgage_limit_table = {
+    'federal': 750000,
+    'CA': 1000000
+}

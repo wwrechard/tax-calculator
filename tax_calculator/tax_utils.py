@@ -8,11 +8,12 @@ def standard_deduction(type, marital, year):
     key = (type, marital, year)
     return t.deduction_table[key]
 
-def qualified_mortgage(interest, principal):
-    if principal <= 750000:
+def qualified_mortgage(type, interest, principal):
+    limit = t.mortgage_limit_table[type]
+    if principal <= limit:
         return interest
     else:
-        return interest * 750000 / principal
+        return interest * limit / principal
 
 def tax_bracket(type, marital, year):
     key = (type, marital, year)
@@ -97,7 +98,7 @@ class Tax:
 
     def get_federal_deduction(self):
         standard = standard_deduction('federal', self._marital, self._year)
-        mortgage = qualified_mortgage(self._mortgage_interest, self._mortgage_amount)
+        mortgage = qualified_mortgage('federal', self._mortgage_interest, self._mortgage_amount)
         itemized_deduction = self._salt + mortgage + self._donations
 
         return max(standard, itemized_deduction)
@@ -129,8 +130,9 @@ class Tax:
 
     def get_state_deduction(self):
         standard = standard_deduction(self._state, self._marital, self._year)
-        
-        itemized_deduction = self._property_tax + self._mortgage_interest + self._donations
+
+        mortgage_deduction = qualified_mortgage(self._state, self._mortgage_interest, self._mortgage_amount)
+        itemized_deduction = self._property_tax + mortgage_deduction + self._donations
         threshold = t.state_deduction_adjustment_table[(
             self._state, self._marital, self._year)]
         federal_agi = self.get_total_income()
