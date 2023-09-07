@@ -34,7 +34,8 @@ st.number_input('Primary home mortgage interests:', key='mortgage_interest')
 st.number_input('Primary home mortgage principal:', key='mortgage_amount')
 st.number_input('Donations:', value=3000, key='donations')
 st.number_input('Property tax:', key='property_tax')
-st.number_input('Qualified child dependents:', key='child_dependents')
+st.number_input('Qualified child dependents (age < 17):', key='child_below_17', step=1)
+st.number_input('Qualified child dependents (age >= 17):', key='child_above_17', step=1)
 
 st.subheader('Tax Withholds')
 ll, rr = st.columns(2)
@@ -77,7 +78,8 @@ with lll:
         fica_tax=tax.get_fica_tax(),
         medicare_tax=tax.get_medicare_tax(),
         sdi_tax=tax.get_state_sdi_tax(),
-        child_credit=0))
+        child_credit=tax.get_child_tax_credit()
+    ))
 with rrr:
     st.write(layout.withhold_output(
         federal_tax=tax.get_federal_income_tax(),

@@ -1,3 +1,4 @@
+from math import ceil
 import tax_calculator.tables as t
 
 def cap_401k(year):
@@ -43,6 +44,9 @@ def get_additional_medicare_tax_threshold(martial):
     elif martial == 'married':
         return 250000
 
+def rount_up_to(num, unit):
+    return ceil(num / unit) * unit
+
 class Tax:
     def __init__(self, session, projected_state_withhold):
         self._year = session['year']
@@ -64,10 +68,10 @@ class Tax:
         self._mortgage_amount = session['mortgage_amount']
         self._donations = session['donations']
         self._property_tax = session['property_tax']
-        self._child_dependents = session['child_dependents']
+        self._child_below_17 = session['child_below_17']
+        self._child_above_17 = session['child_above_17']
 
-        self._salt = min(projected_state_withhold + self._property_tax, 10000)
-
+        self._salt = min(projected_state_withhold + self._property_tax, 10000) 
 
     def capital_gain(self):
         net_gain = self._short_gain + self._long_gain
@@ -84,6 +88,12 @@ class Tax:
 
     def get_total_income(self):
         return max(0, self.get_wages() + self.get_spouse_wages() + self._other_incomes + self.capital_gain() - self._401k - self._sp_401k)
+
+    def get_child_tax_credit(self):
+        credit = self._child_below_17 * 2000 + self._child_above_17 * 500
+        threshold = 400000 if self._martial == 'married' else 200000
+        credit -= rount_up_to(max(0, self.get_total_income() - threshold), 1000) * 0.05
+        return max(0, credit)
 
     def get_federal_deduction(self):
         standard = standard_deduction('federal', self._martial, self._year)
@@ -104,6 +114,7 @@ class Tax:
             result = calculate_tax(taxable_income - self._long_gain, brackets, rates)
             long_tax_rate = long_term_capital_gain_tax_rate(taxable_income, self._martial, self._year)
             result += self._long_gain * long_tax_rate
+        result -= self.get_child_tax_credit()
         return result
 
     def get_fica_tax(self):
