@@ -161,6 +161,7 @@ class Withhold:
         self._federal_per_pay = session['federal_per_pay']
         self._state_per_pay = session['state_per_pay']
         self._remain_bonus = session['remain_bonus']
+        self._remain_rsu = session['remain_rsu']
         self._rsu = session['rsu']
         
         self._sp_federal_withhold = session['sp_federal_withhold']
@@ -173,6 +174,7 @@ class Withhold:
         self._sp_federal_per_pay = session['sp_federal_per_pay']
         self._sp_state_per_pay = session['sp_state_per_pay']
         self._sp_remain_bonus = session['sp_remain_bonus']
+        self._sp_remain_rsu = session['sp_remain_rsu']
         self._sp_rsu = session['sp_rsu']
 
     def get_current_federal_withhold(self):
@@ -189,8 +191,8 @@ class Withhold:
         return projected_withhold
 
     def get_projected_federal_rsu_withhold(self):
-        projected_withhold = (self._rsu * self._federal_rsu_rate +
-                              self._sp_rsu * self._sp_federal_rsu_rate)
+        projected_withhold = (self._remain_rsu * self._federal_rsu_rate +
+                              self._sp_remain_rsu * self._sp_federal_rsu_rate)
         return projected_withhold
 
     def get_projected_federal_withhold(self):
@@ -206,8 +208,8 @@ class Withhold:
         return projected_withhold
 
     def get_projected_state_rsu_withhold(self):
-        projected_withhold = (self._rsu * self._state_rsu_rate +
-                              self._sp_rsu * self._sp_state_rsu_rate)
+        projected_withhold = (self._remain_rsu * self._state_rsu_rate +
+                              self._sp_remain_rsu * self._sp_state_rsu_rate)
         return projected_withhold
 
     def get_projected_state_withhold(self):

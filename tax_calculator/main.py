@@ -39,18 +39,19 @@ st.number_input('Qualified child dependents:', key='child_dependents')
 st.subheader('Tax Withholds')
 ll, rr = st.columns(2)
 with ll:
-    st.number_input('Current federal tax withhold (w/o RSU):', key='federal_withhold')
-    st.number_input('Current state tax withhold (w/o RSU):', key='state_withhold')
+    st.number_input('Current federal tax withhold:', key='federal_withhold')
+    st.number_input('Current state tax withhold:', key='state_withhold')
     st.number_input('RSU federal withhold rate:', key='federal_rsu_rate', value=0.22)
     st.number_input('Bonus federal withhold rate:', key='federal_bonus_rate', value=0.22)
     st.number_input('Number of remaining paychecks:', key='num_pay')
     st.number_input('Federal withhold per paycheck:', key='federal_per_pay')
     st.number_input('State withhold per paycheck:', key='state_per_pay')
     st.number_input('Remaining bonus:', key='remain_bonus')
+    st.number_input('Remaining RSU:', key='remain_rsu')
 with rr:
-    st.number_input('Current spouse federal tax withhold (w/o RSU):',
+    st.number_input('Current spouse federal tax withhold:',
                     key='sp_federal_withhold')
-    st.number_input('Current spouse state tax withhold (w/o RSU):', key='sp_state_withhold')
+    st.number_input('Current spouse state tax withhold:', key='sp_state_withhold')
     st.number_input('Spouse federal RSU withhold rate:',
                     key='sp_federal_rsu_rate', value=0.22)
     st.number_input('Spouse federal bonus withhold rate:',
@@ -59,6 +60,7 @@ with rr:
     st.number_input('Spouse federal withhold per paycheck:', key='sp_federal_per_pay')
     st.number_input('Spouse state withhold per paycheck:', key='sp_state_per_pay')
     st.number_input('Spouse remaining bonus:', key='sp_remain_bonus')
+    st.number_input('Spouse remaining RSU:', key='sp_remain_rsu')
     
 st.subheader('Regular Tax')
 withhold = utils.Withhold(st.session_state)
