@@ -2,11 +2,22 @@ import tax_calculator.constants as c
 import tax_calculator.layout as layout
 import tax_calculator.tax_utils as utils
 
-import streamlit as st
 import numpy as np
+import streamlit as st
 
 
 st.title('Tax calculator')
+
+# save and load data
+if st.button(label=f"Save data",
+             on_click=utils.save_session_to_file,
+             type='primary',
+             kwargs={
+                 'session': st.session_state,
+                 'file_name': utils.get_filename(__file__, st.session_state),
+             }):
+    f"Successfully saved to {utils.get_filename(__file__, st.session_state)}"
+
 st.selectbox('Marital status:', ['single', 'married'], key='marital')
 st.selectbox('Resident state:', ['CA'], key='state')
 year = st.selectbox('Tax year:', [2023, 2024], key='year')
@@ -89,4 +100,3 @@ with rrr:
         projected_federal_withhold=withhold.get_projected_federal_withhold(),
         projected_state_withhold=withhold.get_projected_state_withhold()
     ))
-

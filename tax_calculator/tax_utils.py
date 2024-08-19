@@ -1,4 +1,7 @@
 from math import ceil
+
+import csv
+import os
 import tax_calculator.tables as t
 
 def cap_401k(year):
@@ -229,3 +232,22 @@ class Withhold:
         return (self.get_current_state_withhold() +
                 self.get_projected_state_pay_withhold() +
                 self.get_projected_state_rsu_withhold())
+
+def save_session_to_file(session, file_name):
+    d = session.to_dict()
+    with open(file_name, "w", newline="") as f:
+        w = csv.DictWriter(f, d.keys())
+        w.writeheader()
+        w.writerow(d)
+
+def get_filename(this_file, session):
+    session['year'] = session.get('year', 2023)
+    session['marital'] = session.get('marital', 'single')
+    session['state'] = session.get('state', 'CA')
+
+    dirname = os.path.dirname(this_file)
+    name = (f"data/{session['year']}"
+            f"-{session['marital']}"
+            f"-{session['state']}.csv")
+    return os.path.join(dirname, name)
+
