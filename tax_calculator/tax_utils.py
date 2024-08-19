@@ -1,3 +1,5 @@
+from datetime import date
+from io import StringIO
 from math import ceil
 
 import csv
@@ -246,8 +248,21 @@ def get_filename(this_file, session):
     session['state'] = session.get('state', 'CA')
 
     dirname = os.path.dirname(this_file)
+    today = str(date.today())
     name = (f"data/{session['year']}"
-            f"-{session['marital']}"
-            f"-{session['state']}.csv")
+            f"_{session['marital']}"
+            f"_{session['state']}-{today}.csv")
     return os.path.join(dirname, name)
 
+def update_session_state(session, uploaded_file):
+    stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+    reader = csv.DictReader(stringio)
+    for row in reader:
+        for key in row:
+            val = session[key]
+            if type(val) is int:
+                session[key] = int(row[key])
+            elif type(val) is float:
+                session[key] = float(row[key])
+            else:
+                session[key] = row[key]
