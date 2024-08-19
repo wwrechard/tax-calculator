@@ -9,7 +9,7 @@ import numpy as np
 st.title('Tax calculator')
 st.selectbox('Marital status:', ['single', 'married'], key='marital')
 st.selectbox('Resident state:', ['CA'], key='state')
-year = st.selectbox('Tax year:', [2023], key='year')
+year = st.selectbox('Tax year:', [2023, 2024], key='year')
 
 # Inputs for the incomes
 st.subheader('Incomes ($)')
