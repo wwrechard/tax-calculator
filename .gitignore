@@ -3,6 +3,7 @@
 
 # Any local csv data
 */data/*.csv
+*.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
