@@ -26,7 +26,7 @@ if uploaded_file is not None:
 
 st.selectbox('Marital status:', ['single', 'married'], key='marital')
 st.selectbox('Resident state:', ['CA'], key='state')
-year = st.selectbox('Tax year:', [2023, 2024], key='year')
+year = st.selectbox('Tax year:', [2023, 2024, 2025], key='year')
 
 # Inputs for the incomes
 def set_default_value(field, value):

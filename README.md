@@ -1,5 +1,5 @@
 # tax-calculator
-A simple tax estimation tool for calculating extra withhold needed for your w-4 file to avoid tax penanlty. It specializes for individuals/married couples with RSU incomes. The tool is written using `steamlit` and currently supports __federal__ and __CA__ tax for __Year 2023__ and __Year 2024__.
+A simple tax estimation tool for calculating extra withhold needed for your w-4 file to avoid tax penanlty. It specializes for individuals/married couples with RSU incomes. The tool is written using `steamlit` and currently supports __federal__ and __CA__ tax for __Year 2023__, __Year 2024__, __Year 2025__.
 
 The software now allows you to save session data to local csv files and load them in the future to continue the tax planning.
 
